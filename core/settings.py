@@ -37,7 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'sleep_tracker'
+    'sleep_tracker',
+    'user'
 ]
 
 MIDDLEWARE = [
@@ -117,3 +118,4 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'static'
+AUTH_USER_MODEL = 'user.User'
