@@ -10,13 +10,13 @@ class Nutrition(models.Model):
 
     proteins = models.FloatField
     fats = models.FloatField
-    carbohydrates = models.FloatField
+    carbs = models.FloatField
     fiber = models.FloatField
 
     calories = models.FloatField(blank=True, null=True)
 
     def calculate_calories(self):
-        return (self.proteins * 4 + self.carbohydrates * 4 +
+        return (self.proteins * 4 + self.carbs * 4 +
                 self.fats * 9 + self.fiber * 2)
 
     def save(self, *args, **kwards):

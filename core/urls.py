@@ -16,8 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from nutrition import views as nutrition_views
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('sleep_tracker.urls'))
+    path('', include('sleep_tracker.urls')),
+    path("nutrition/create/", nutrition_views.nutrition_create, name="nutrition_create"),
+    path("nutrition/delete/<int:pk>/", nutrition_views.nutrition_delete, name="nutrition_delete"),
 ]
