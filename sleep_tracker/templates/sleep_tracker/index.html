@@ -1,0 +1,90 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Sleep Tracker</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="stylesheet" href="{% static 'sleep_tracker/css/style.css' %}">
+</head>
+<body>
+
+    <h2 style="margin-left: 20px;">Години сну</h2>
+
+    <div class="stats-container">
+        <div class="card">
+            <div class="card-header">
+                <span class="material-symbols-outlined icon-blue">calendar_today</span>
+                <h4>Минулої ночі</h4>
+            </div>
+            <div class="value">{{ last_night }}</div>
+            <span class="status-badge yellow">Задовільно</span>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span class="material-symbols-outlined icon-purple">trending_up</span>
+                <h4>За тиждень</h4>
+            </div>
+            <div class="value">{{ week_avg }}</div>
+            <span class="status-badge gray">Середнє</span>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span class="material-symbols-outlined icon-green">nightlight</span>
+                <h4>За місяць</h4>
+            </div>
+            <div class="value">{{ month_avg }}</div>
+            <span class="status-badge gray">Середнє</span>
+        </div>
+    </div>
+
+    <div class="chart-section">
+        <h3>Графік сну за місяць</h3>
+        <div style="height: 300px; position: relative;">
+            <canvas id="sleepChart"></canvas>
+        </div>
+    </div>
+
+    <div class="form-card">
+        <h3>Скільки ви спали минулої ночі?</h3>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.hours }}
+            <button type="submit" class="save-btn">Зберегти</button>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ctx = document.getElementById('sleepChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ labels|safe }},
+                datasets: [{
+                    label: 'Години сну',
+                    data: {{ chart_data|safe }},
+                    borderColor: '#4A90E2',
+                    backgroundColor: 'rgba(74, 144, 226, 0.1)',
+                    fill: true,
+                    tension: 0.4, // Робимо лінію плавною
+                    pointRadius: 4,
+                    pointBackgroundColor: '#4A90E2'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, max: 12, grid: { borderDash: [5, 5] } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>
