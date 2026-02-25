@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'sleep_tracker',
+    'stress_tracker',
 ]
 
 MIDDLEWARE = [
