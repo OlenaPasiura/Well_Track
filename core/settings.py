@@ -38,7 +38,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'sleep_tracker',
-    'user'
+    'user',
+    'nutrition',
+    'healthstats'
+
 ]
 
 MIDDLEWARE = [
