@@ -1,5 +1,7 @@
 from django.db import models
 from django.conf import settings
+from django.core.exceptions import ValidationError
+
 
 class SleepRecord(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -15,3 +17,7 @@ class SleepRecord(models.Model):
         """sleep duration."""
         delta = self.end_time - self.start_time
         return max(delta.total_seconds() / 3600, 0)
+
+    def clean(self):
+        if self.end_time <= self.start_time:
+            raise ValidationError("End time must be after start time.")

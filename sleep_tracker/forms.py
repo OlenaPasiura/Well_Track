@@ -1,4 +1,6 @@
 from django import forms
+from .models import SleepRecord
 
-class SleepInputForm(forms.Form):
-    hours = forms.FloatField(label='Скільки годин?')
+class SleepInputForm(forms.ModelForm):
+    model = SleepRecord
+    fields = ['start_time', 'end_time']
