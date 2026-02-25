@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     # local apps
     'health_database',
     'sleep_tracker',
+    'stress_tracker',
     'user',
     'nutrition',
     'healthstats',
