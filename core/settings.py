@@ -37,7 +37,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # local apps
     'health_database',
+    'sleep_tracker',
+    'user',
+    'nutrition',
+    'healthstats',
 ]
 
 MIDDLEWARE = [
@@ -117,6 +123,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'static'
+AUTH_USER_MODEL = 'user.User'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
