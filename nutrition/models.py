@@ -1,10 +1,12 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 
+from core import settings
+
 User = get_user_model()
 
 class Nutrition(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="nutrition_entries")
     date = models.DateField()
     meals_count = models.PositiveIntegerField()
 

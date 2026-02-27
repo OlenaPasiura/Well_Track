@@ -66,6 +66,6 @@ def dashboard(request):
         "labels": labels,
     }
 
-    
+
 
     return render(request, "sleep_tracker/index.html", context)

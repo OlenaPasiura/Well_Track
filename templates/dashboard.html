@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="WEll-track - Панель управління">
+    <title>WEll-track - Dashboard</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="dashboard-body">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'dashboard_page' %}">
+                <div class="logo-icon-nav">
+                    <span>W</span>
+                </div>
+                <span class="brand-title-nav">WEll-track</span>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{% url 'dashboard_page' %}">
+                            <i class="bi bi-house-door"></i> Головна
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'stress_page' %}">
+                            <i class="bi bi-emoji-smile"></i> Стрес
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'sleep_page' %}">
+                            <i class="bi bi-moon-stars"></i> Сон
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'nutrition_page' %}">
+                            <i class="bi bi-cup-straw"></i> Харчування
+                        </a>
+                    </li>
+                    <li class="nav-item" id="chatNavItem">
+                        <a class="nav-link" href="{% url 'chat_page' %}">
+                            <i class="bi bi-chat-dots"></i> Чат
+                        </a>
+                    </li>
+                    <li class="nav-item d-none" id="responsesNavItem">
+                        <a class="nav-link" href="{% url 'responses_page' %}">
+                            <i class="bi bi-chat-square-text"></i> Відповіді
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <!-- поки просто веде на головну; реальний logout підключимо пізніше -->
+                        <a class="nav-link" href="{% url 'home' %}" id="logoutBtn">
+                            <i class="bi bi-box-arrow-right"></i> Вийти
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid py-4">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="page-title mb-4">Панель управління</h1>
+                <p class="text-muted">Вітаємо, <span id="userName"></span>!</p>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <div class="stats-icon stress-color">
+                        <i class="bi bi-emoji-smile"></i>
+                    </div>
+                    <div>
+                        <h6 class="stats-label">Рівень стресу</h6>
+                        <h3 class="stats-value" id="stressLevel">-</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <div class="stats-icon sleep-color">
+                        <i class="bi bi-moon-stars"></i>
+                    </div>
+                    <div>
+                        <h6 class="stats-label">Години сну</h6>
+                        <h3 class="stats-value" id="sleepHours">-</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <div class="stats-icon nutrition-color">
+                        <i class="bi bi-cup-straw"></i>
+                    </div>
+                    <div>
+                        <h6 class="stats-label">Калорії сьогодні</h6>
+                        <h3 class="stats-value" id="calories">-</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="chart-card">
+                    <h5 class="chart-title">Рівень стресу (7 днів)</h5>
+                    <canvas id="stressChart"></canvas>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="chart-card">
+                    <h5 class="chart-title">Години сну (7 днів)</h5>
+                    <canvas id="sleepChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Assistant Button -->
+        <button class="ai-assistant-btn" id="aiAssistantBtn" title="AI Помічник">
+            <i class="bi bi-robot"></i>
+        </button>
+    </div>
+
+    <!-- AI Assistant Modal -->
+    <div class="modal fade" id="aiModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-robot"></i> AI Помічник
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="aiChatBody">
+                    <div class="ai-message">
+                        <strong>AI:</strong> Привіт! Я ваш AI помічник. Чим можу допомогти?
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <input type="text" class="form-control" id="aiInput" placeholder="Введіть повідомлення...">
+                    <button type="button" class="btn btn-primary" id="aiSendBtn">
+                        <i class="bi bi-send"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Custom JS -->
+    <script src="{% static 'js/main.js' %}"></script>
+    <script src="{% static 'js/dashboard.js' %}"></script>
+</body>
+</html>

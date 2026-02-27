@@ -1,32 +1,35 @@
-"""
-URL configuration for core project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/6.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
 from django.urls import path, include
+from core.views import home
+from core import views
 from nutrition import views as nutrition_views
 
 
 urlpatterns = [
+    # головна
+    path('', home, name='home'),
+
+    # сторінки фронту
+    path('login/', views.login_page, name='login_page'),
+    path('register/', views.register_page, name='register_page'),
+    path('select-type/', views.select_type_page, name='select_type_page'),
+    path('dashboard/', views.dashboard_page, name='dashboard_page'),
+    path('sleep/', views.sleep_page, name='sleep_page'),
+    path('stress/', views.stress_page, name='stress_page'),
+    path('nutrition/', views.nutrition_page, name='nutrition_page'),
+    path('chat/', views.chat_page, name='chat_page'),
+    path('responses/', views.responses_page, name='responses_page'),
+
+    # адмінка
     path('admin/', admin.site.urls),
-    path('', include('sleep_tracker.urls')),
+
+    # sleep tracker (окремий додаток)
+    path('sleep-tracker/', include('sleep_tracker.urls')),
 
     # health stats API
     path('api/health/', include('healthstats.urls')),
 
-    # nutrition
+    # nutrition backend дії
     path("nutrition/create/", nutrition_views.nutrition_create, name="nutrition_create"),
     path("nutrition/delete/<int:pk>/", nutrition_views.nutrition_delete, name="nutrition_delete"),
 ]

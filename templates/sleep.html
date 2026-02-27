@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="WEll-track - Відстеження сну">
+    <title>WEll-track - Сон</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <style>
+        /* щоб не було “на всю ширину” */
+        .page-wrap {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .sleep-display {
+            text-align: center;
+            margin: 1.75rem 0 1.25rem;
+        }
+        .sleep-value {
+            font-size: 4rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, #8b5cf6 0%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+        }
+        .sleep-label {
+            font-size: 1.1rem;
+            color: #6b7280;
+        }
+
+        /* кнопки якості з ефектами */
+        .quality-btn {
+            border: 2px solid #e5e7eb;
+            border-radius: 0.9rem;
+            padding: 1rem 0.75rem;
+            background: #fff;
+            cursor: pointer;
+            transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease, background .15s ease;
+            text-align: center;
+            width: 100%;
+            user-select: none;
+        }
+        .quality-btn:hover {
+            transform: translateY(-2px);
+            border-color: #8b5cf6;
+            box-shadow: 0 10px 25px rgba(0,0,0,.10);
+        }
+        .quality-btn.selected {
+            border-color: #8b5cf6;
+            background: linear-gradient(135deg, #faf5ff 0%, #eff6ff 100%);
+        }
+        .quality-emoji {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        /* щоб range не виглядав як “лінія на весь екран” */
+        .range-wrap {
+            padding: 0.5rem 0.25rem 0;
+        }
+
+        /* chart-card інколи вимагає padding - на всяк */
+        .chart-card canvas {
+            max-height: 320px;
+        }
+    </style>
+</head>
+
+<body class="dashboard-body">
+
+<!-- NAV -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <div class="container-fluid">
+        <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'dashboard_page' %}">
+            <div class="logo-icon-nav"><span>W</span></div>
+            <span class="brand-title-nav">WEll-track</span>
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'dashboard_page' %}">
+                        <i class="bi bi-house-door"></i> Головна
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'stress_page' %}">
+                        <i class="bi bi-emoji-smile"></i> Стрес
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="{% url 'sleep_page' %}">
+                        <i class="bi bi-moon-stars"></i> Сон
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'nutrition_page' %}">
+                        <i class="bi bi-cup-straw"></i> Харчування
+                    </a>
+                </li>
+                <li class="nav-item" id="chatNavItem">
+                    <a class="nav-link" href="{% url 'chat_page' %}">
+                        <i class="bi bi-chat-dots"></i> Чат
+                    </a>
+                </li>
+                <li class="nav-item d-none" id="responsesNavItem">
+                    <a class="nav-link" href="{% url 'responses_page' %}">
+                        <i class="bi bi-chat-square-text"></i> Відповіді
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" id="logoutBtn">
+                        <i class="bi bi-box-arrow-right"></i> Вийти
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- CONTENT -->
+<div class="container py-4">
+    <div class="page-wrap">
+        <h1 class="page-title mb-4">Відстеження сну</h1>
+
+        <!-- INPUT CARD -->
+        <div class="chart-card">
+            <h5 class="chart-title">Скільки годин ви спали?</h5>
+
+            <div class="sleep-display">
+                <div class="sleep-value" id="sleepValue">7</div>
+                <div class="sleep-label">годин</div>
+            </div>
+
+            <div class="range-wrap mb-4">
+                <input type="range" class="form-range" id="sleepSlider" min="0" max="12" step="0.5" value="7">
+            </div>
+
+            <h6 class="mb-3">Якість сну</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-12 col-md-4">
+                    <button type="button" class="quality-btn" data-quality="poor">
+                        <span class="quality-emoji">😴</span>
+                        Погано
+                    </button>
+                </div>
+                <div class="col-12 col-md-4">
+                    <button type="button" class="quality-btn selected" data-quality="average">
+                        <span class="quality-emoji">😊</span>
+                        Нормально
+                    </button>
+                </div>
+                <div class="col-12 col-md-4">
+                    <button type="button" class="quality-btn" data-quality="good">
+                        <span class="quality-emoji">😄</span>
+                        Відмінно
+                    </button>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="note" class="form-label">Нотатка (необов'язково)</label>
+                <textarea class="form-control" id="note" rows="3" placeholder="Чи були проблеми зі сном?"></textarea>
+            </div>
+
+            <button id="saveBtn" class="btn btn-primary btn-gradient w-100">
+                Зберегти
+            </button>
+        </div>
+
+        <!-- CHART -->
+        <div class="chart-card mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="chart-title mb-0">Статистика сну</h5>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-sm btn-outline-primary active" id="weekBtn" onclick="switchPeriod('week')">
+                        Тиждень
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="monthBtn" onclick="switchPeriod('month')">
+                        Місяць
+                    </button>
+                </div>
+            </div>
+            <canvas id="sleepChart"></canvas>
+        </div>
+
+        <!-- STATS -->
+        <div class="chart-card mt-4">
+            <h5 class="chart-title">Середні показники</h5>
+            <div class="row g-3" id="statsContainer">
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <div class="stats-icon sleep-color">
+                            <i class="bi bi-moon-stars"></i>
+                        </div>
+                        <div>
+                            <h6 class="stats-label">Середня тривалість</h6>
+                            <h3 class="stats-value" id="avgHours">-</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <div class="stats-icon nutrition-color">
+                            <i class="bi bi-star"></i>
+                        </div>
+                        <div>
+                            <h6 class="stats-label">Якість</h6>
+                            <h3 class="stats-value" id="avgQuality">-</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <div class="stats-icon stress-color">
+                            <i class="bi bi-clipboard-data"></i>
+                        </div>
+                        <div>
+                            <h6 class="stats-label">Записів</h6>
+                            <h3 class="stats-value" id="totalRecords">-</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI button (як у тебе) -->
+        <button class="ai-assistant-btn" id="aiAssistantBtn" title="AI Помічник">
+            <i class="bi bi-robot"></i>
+        </button>
+    </div>
+</div>
+
+<!-- AI modal (як у тебе) -->
+<div class="modal fade" id="aiModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-robot"></i> AI Помічник</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="aiChatBody">
+                <div class="ai-message">
+                    <strong>AI:</strong> Привіт! Я ваш AI помічник. Чим можу допомогти?
+                </div>
+            </div>
+            <div class="modal-footer">
+                <input type="text" class="form-control" id="aiInput" placeholder="Введіть повідомлення...">
+                <button type="button" class="btn btn-primary" id="aiSendBtn">
+                    <i class="bi bi-send"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- твої JS -->
+<script src="{% static 'js/main.js' %}"></script>
+
+<script>
+    // ВАЖЛИВО: один раз!
+    protectPage();
+
+    let selectedQuality = 'average';
+    let sleepChart = null;
+    let currentPeriod = 'week';
+
+    const sleepSlider = document.getElementById('sleepSlider');
+    const sleepValue = document.getElementById('sleepValue');
+
+    sleepSlider.addEventListener('input', function() {
+        sleepValue.textContent = this.value;
+    });
+
+    // quality buttons
+    const qualityButtons = document.querySelectorAll('.quality-btn');
+    qualityButtons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+            qualityButtons.forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            selectedQuality = btn.getAttribute('data-quality');
+        });
+    });
+
+    // save
+    document.getElementById('saveBtn').addEventListener('click', function() {
+        const hours = parseFloat(sleepSlider.value);
+        const note = document.getElementById('note').value;
+        const today = getTodayString();
+
+        const sleepData = getData(STORAGE_KEYS.SLEEP_DATA, []);
+        const existingIndex = sleepData.findIndex(item => item.date === today);
+
+        const entry = {
+            date: today,
+            hours: hours,
+            quality: selectedQuality || 'average',
+            note: note,
+            timestamp: new Date().toISOString()
+        };
+
+        if (existingIndex >= 0) sleepData[existingIndex] = entry;
+        else sleepData.push(entry);
+
+        saveData(STORAGE_KEYS.SLEEP_DATA, sleepData);
+
+        alert('Збережено!');
+        updateChart();
+        updateStats();
+    });
+
+    function switchPeriod(period) {
+        currentPeriod = period;
+        document.getElementById('weekBtn').classList.toggle('active', period === 'week');
+        document.getElementById('monthBtn').classList.toggle('active', period === 'month');
+        updateChart();
+        updateStats();
+    }
+
+    function updateChart() {
+        const ctx = document.getElementById('sleepChart');
+        if (!ctx) return;
+
+        const sleepData = getData(STORAGE_KEYS.SLEEP_DATA, []);
+        const days = currentPeriod === 'week' ? 7 : 30;
+
+        const labels = [];
+        const data = [];
+
+        const today = new Date();
+        for (let i = days - 1; i >= 0; i--) {
+            const d = new Date(today);
+            d.setDate(d.getDate() - i);
+            const dateStr = d.toISOString().split('T')[0];
+
+            labels.push(currentPeriod === 'week'
+                ? formatDate(dateStr)
+                : (d.getDate() + '.' + (d.getMonth() + 1))
+            );
+
+            const dayData = sleepData.find(item => item.date === dateStr);
+            data.push(dayData ? dayData.hours : null);
+        }
+
+        if (sleepChart) sleepChart.destroy();
+
+        sleepChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Години сну',
+                    data,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 12,
+                        ticks: { stepSize: 2 }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => context.parsed.y != null
+                                ? context.parsed.y + ' год'
+                                : 'Немає даних'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function updateStats() {
+        const sleepData = getData(STORAGE_KEYS.SLEEP_DATA, []);
+        const days = currentPeriod === 'week' ? 7 : 30;
+
+        const today = new Date();
+        const periodData = [];
+
+        for (let i = days - 1; i >= 0; i--) {
+            const d = new Date(today);
+            d.setDate(d.getDate() - i);
+            const dateStr = d.toISOString().split('T')[0];
+
+            const dayData = sleepData.find(item => item.date === dateStr);
+            if (dayData) periodData.push(dayData);
+        }
+
+        const avgHoursEl = document.getElementById('avgHours');
+        const avgQualityEl = document.getElementById('avgQuality');
+        const totalRecordsEl = document.getElementById('totalRecords');
+
+        if (periodData.length === 0) {
+            avgHoursEl.textContent = 'Немає даних';
+            avgQualityEl.textContent = '-';
+            totalRecordsEl.textContent = '0';
+            return;
+        }
+
+        const avgHours = periodData.reduce((s, x) => s + x.hours, 0) / periodData.length;
+        avgHoursEl.textContent = avgHours.toFixed(1) + ' год';
+
+        const qualityMap = { poor: 1, average: 2, good: 3 };
+        const avgQ = periodData.reduce((s, x) => s + (qualityMap[x.quality] || 2), 0) / periodData.length;
+
+        let qualityText = 'Нормально';
+        if (avgQ >= 2.5) qualityText = 'Відмінно';
+        else if (avgQ < 1.5) qualityText = 'Погано';
+
+        avgQualityEl.textContent = qualityText;
+        totalRecordsEl.textContent = String(periodData.length);
+    }
+
+    updateChart();
+    updateStats();
+</script>
+
+</body>
+</html>

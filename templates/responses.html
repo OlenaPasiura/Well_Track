@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="WEll-track - Відповіді пацієнтам">
+    <title>WEll-track - Відповіді</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .patient-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border: 2px solid #e5e7eb;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .patient-card:hover {
+            border-color: var(--primary-purple);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+        .patient-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #9333ea 0%, #3b82f6 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+        .unread-badge {
+            background: #ef4444;
+            color: white;
+            border-radius: 1rem;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+    </style>
+</head>
+<body class="dashboard-body">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'dashboard_page' %}">
+                <div class="logo-icon-nav">
+                    <span>W</span>
+                </div>
+                <span class="brand-title-nav">WEll-track</span>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'dashboard_page' %}">
+                            <i class="bi bi-house-door"></i> Головна
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'stress_page' %}">
+                            <i class="bi bi-emoji-smile"></i> Стрес
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'sleep_page' %}">
+                            <i class="bi bi-moon-stars"></i> Сон
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'nutrition_page' %}">
+                            <i class="bi bi-cup-straw"></i> Харчування
+                        </a>
+                    </li>
+                    <li class="nav-item" id="chatNavItem">
+                        <a class="nav-link" href="{% url 'chat_page' %}">
+                            <i class="bi bi-chat-dots"></i> Чат
+                        </a>
+                    </li>
+                    <li class="nav-item d-none" id="responsesNavItem">
+                        <a class="nav-link active" href="{% url 'responses_page' %}">
+                            <i class="bi bi-chat-square-text"></i> Відповіді
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="logoutBtn">
+                            <i class="bi bi-box-arrow-right"></i> Вийти
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container py-4">
+        <h1 class="page-title mb-4">Відповіді пацієнтам</h1>
+
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <!-- Patient List -->
+                <div class="patient-card" onclick="openChat('Іван Петренко')">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="patient-avatar">ІП</div>
+                            <div>
+                                <h6 class="mb-0">Іван Петренко</h6>
+                                <small class="text-muted">Останнє повідомлення: Доброго дня!</small>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="unread-badge">2 нові</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="patient-card" onclick="openChat('Марія Коваль')">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="patient-avatar">МК</div>
+                            <div>
+                                <h6 class="mb-0">Марія Коваль</h6>
+                                <small class="text-muted">Останнє повідомлення: Дякую за консультацію!</small>
+                            </div>
+                        </div>
+                        <div>
+                            <small class="text-muted">15:30</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="patient-card" onclick="openChat('Олександр Шевченко')">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="patient-avatar">ОШ</div>
+                            <div>
+                                <h6 class="mb-0">Олександр Шевченко</h6>
+                                <small class="text-muted">Останнє повідомлення: Чи можу я...</small>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="unread-badge">1 нове</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info mt-4">
+                    <i class="bi bi-info-circle"></i>
+                    Це демо-версія. В реальній версії тут будуть відображатися всі ваші пацієнти.
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Assistant Button -->
+        <button class="ai-assistant-btn" id="aiAssistantBtn" title="AI Помічник">
+            <i class="bi bi-robot"></i>
+        </button>
+    </div>
+
+    <!-- AI Assistant Modal -->
+    <div class="modal fade" id="aiModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-robot"></i> AI Помічник
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="aiChatBody">
+                    <div class="ai-message">
+                        <strong>AI:</strong> Привіт! Я ваш AI помічник. Чим можу допомогти?
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <input type="text" class="form-control" id="aiInput" placeholder="Введіть повідомлення...">
+                    <button type="button" class="btn btn-primary" id="aiSendBtn">
+                        <i class="bi bi-send"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Custom JS -->
+    <script src="js/main.js"></script>
+    <script>
+        protectPage();
+
+        function openChat(patientName) {
+            alert('Відкриття чату з: ' + patientName + '\n\nВ повній версії тут буде чат з пацієнтом.');
+        }
+    </script>
+</body>
+</html>

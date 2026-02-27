@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="WEll-track - Реєстрація">
+    <title>WEll-track - Реєстрація</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="bg-gradient">
+    <div class="container min-vh-100 d-flex align-items-center justify-content-center py-4">
+        <div class="auth-container">
+            <!-- Back Button -->
+            <a href="{% url 'select_type_page' %}" class="back-button mb-4">
+                <i class="bi bi-arrow-left"></i>
+                <span>Назад до вибору типу</span>
+            </a>
+
+            <!-- Logo and Title -->
+            <div class="text-center mb-4">
+                <div class="d-flex align-items-center justify-content-center gap-2 mb-3">
+                    <div class="logo-icon-small">
+                        <span>W</span>
+                    </div>
+                    <h1 class="brand-title-small mb-0">WEll-track</h1>
+                </div>
+                <p class="auth-subtitle">
+                    Реєстрація як
+                    <span id="userTypeText">
+                        {{ request.GET.type|default:"користувач" }}
+                    </span>
+                </p>
+            </div>
+
+            <!-- Registration Form -->
+            <form id="registerForm" class="auth-form">
+                <!-- Email Field -->
+                <div class="mb-3">
+                    <label for="email" class="form-label">Електронна пошта</label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-envelope"></i>
+                        </span>
+                        <input type="email" class="form-control" id="email" placeholder="your.email@example.com" required>
+                    </div>
+                </div>
+
+                <!-- Password Field -->
+                <div class="mb-3">
+                    <label for="password" class="form-label">Пароль</label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-lock"></i>
+                        </span>
+                        <input type="password" class="form-control" id="password" placeholder="Мінімум 6 символів" required>
+                        <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                            <i class="bi bi-eye" id="eyeIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Confirm Password Field -->
+                <div class="mb-3">
+                    <label for="confirmPassword" class="form-label">Підтвердити пароль</label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-lock"></i>
+                        </span>
+                        <input type="password" class="form-control" id="confirmPassword" placeholder="Повторіть пароль" required>
+                        <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">
+                            <i class="bi bi-eye" id="eyeIconConfirm"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Nickname Field -->
+                <div class="mb-3">
+                    <label for="nickname" class="form-label">Нік</label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-person"></i>
+                        </span>
+                        <input type="text" class="form-control" id="nickname" placeholder="Ваш нік" required>
+                    </div>
+                </div>
+
+                <!-- Gender Field -->
+                <div class="mb-3">
+                    <label for="gender" class="form-label">Стать</label>
+                    <select class="form-select" id="gender" required>
+                        <option value="">Оберіть стать</option>
+                        <option value="M">Чоловіча</option>
+                        <option value="F">Жіноча</option>
+                    </select>
+                </div>
+
+                <!-- Age Field -->
+                <div class="mb-3">
+                    <label for="age" class="form-label">Вік</label>
+                    <input type="number" class="form-control" id="age" placeholder="Ваш вік" min="1" max="120" required>
+                </div>
+
+                <!-- Error Message -->
+                <div id="errorMessage" class="alert alert-danger d-none" role="alert"></div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-primary w-100 btn-gradient mb-3">
+                    Зареєструватися
+                </button>
+
+                <!-- Login Link -->
+                <div class="text-center">
+                    <p class="mb-0">
+                        Вже маєте акаунт?
+                        <a href="{% url 'login_page' %}" class="auth-link">Увійти</a>
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Custom JS -->
+    <script src="{% static 'js/main.js' %}"></script>
+    <script src="{% static 'js/auth.js' %}"></script>
+</body>
+</html>

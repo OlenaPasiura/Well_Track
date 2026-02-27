@@ -1,13 +1,15 @@
+from django.conf import settings
 from datetime import date
 from django.db import models
-from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
 
+
 class Profile(models.Model):
-    '''This class creat dop information about user'''
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    birth_date = models.DateField(null=True, blank=True)
+    """Additional info about user"""
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+
+    age = models.PositiveIntegerField(null=True, blank=True, verbose_name="Вік")
 
     GENDER_CHOICES = [('M', 'Чоловік'), ('F', 'Жінка')]
     ROLE_CHOICES = [('client', 'Клієнт'), ('dietician', 'Дієтолог')]
@@ -17,11 +19,10 @@ class Profile(models.Model):
 
     @property
     def age_category(self):
-        bd = self.birth_date
-        if not bd:
-            return 'Ви не вказали свої данні в полі про дату народження'
-        today = date.today()
-        age = today.year - bd.year - ((today.month, today.day) < (bd.month, bd.day))
+        if not self.age:
+            return 'Вік не вказано'
+
+        age = self.age
 
         if age < 7:
             return 'Дитина дошкільного віку'
@@ -37,14 +38,16 @@ class Profile(models.Model):
             return 'Дорослий вік'
         elif 46 <= age <= 60:
             return "Пізній дорослий вік"
-        elif age > 60:
+        else:
             return 'Похилий вік'
+
     def __str__(self):
         return f'Профіль {self.user.username} ({self.age_category})'
 
+
 class StressTracker(models.Model):
-    STRESS_LEVELS = [(i, str(i)) for i in range(1,6)]
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    STRESS_LEVELS = [(i, str(i)) for i in range(1, 6)]
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     level = models.IntegerField(choices=STRESS_LEVELS, verbose_name="Рівень стресу")
     notes = models.TextField(blank=True, null=True, verbose_name="Що сталося? (нотатки)")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата запису")
@@ -56,14 +59,16 @@ class StressTracker(models.Model):
         verbose_name = "Запис стресу"
         verbose_name_plural = "Записи стресу"
 
+
 class Nutrition(models.Model):
+
     MEAL_CHOICES = [
         ('breakfast', 'Сніданок'),
         ('lunch', 'Обід'),
         ('dinner', 'Вечеря'),
         ('snack', 'Перекус'),
     ]
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="healthdb_nutrition")
     food_name = models.CharField(max_length=255, verbose_name="Назва страви/продукту")
     meal_type = models.CharField(max_length=20, choices=MEAL_CHOICES, verbose_name="Прийом їжі")
 
@@ -101,11 +106,14 @@ class Nutrition(models.Model):
         verbose_name = "Запис харчування"
         verbose_name_plural = "Записи харчування"
 
+
+
 class SleepRecord(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="healthdb_sleep_records")
     start_time = models.DateTimeField(verbose_name="Ліг спати")
     end_time = models.DateTimeField(verbose_name="Прокинувся")
     created_at = models.DateTimeField(auto_now_add=True)
+
     def clean(self):
         if self.start_time and self.end_time:
             if self.end_time <= self.start_time:
@@ -128,8 +136,20 @@ class SleepRecord(models.Model):
 
 
 class DieticianClient(models.Model):
-    dietician = models.ForeignKey(User, on_delete=models.CASCADE, related_name='clients', limit_choices_to={'profile__profile_type': 'dietician'}, verbose_name="Дієтолог")
-    client = models.ForeignKey(User, on_delete=models.CASCADE, related_name='dieticians', limit_choices_to={'profile__profile_type': 'client'}, verbose_name="Клієнт")
+    dietician = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='clients',
+        limit_choices_to={'profile__profile_type': 'dietician'},
+        verbose_name="Дієтолог",
+    )
+    client = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='dieticians',
+        limit_choices_to={'profile__profile_type': 'client'},
+        verbose_name="Клієнт",
+    )
     assigned_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата закріплення")
 
     class Meta:
