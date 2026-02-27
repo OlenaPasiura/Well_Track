@@ -15,6 +15,7 @@ class Nutrition(models.Model):
 
     calories = models.FloatField(blank=True, null=True)
 
+
     def calculate_calories(self):
         return (self.proteins * 4 + self.carbs * 4 +
                 self.fats * 9 + self.fiber * 2)
