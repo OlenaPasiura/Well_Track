@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'sleep_tracker',
     'stress_tracker',
+    'health_database',
 ]
 
 MIDDLEWARE = [
