@@ -1,11 +1,14 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import Avg
 
 class StressRecord(models.Model):
-
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='new_stress_entries')
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='stress_records'
+    )
     level = models.IntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(5)],
         verbose_name="Рівень стресу"
