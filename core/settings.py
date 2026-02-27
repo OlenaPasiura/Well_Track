@@ -41,7 +41,8 @@ INSTALLED_APPS = [
     'nutrition',
     'healthstats',
     'role_dietician',
-    'stress_tracker'
+    'stress_tracker',
+    'sleep_tracker'
 
 ]
 
