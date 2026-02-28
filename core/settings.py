@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'user',
     'nutrition',
     'healthstats',
+    'dietician',
 ]
 
 MIDDLEWARE = [
