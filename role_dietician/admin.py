@@ -2,6 +2,7 @@ from django.contrib import admin
 from .models import NutritionGoal, DieticianFeedback
 from .services import DieticianService
 from user.role import Role
+from django.contrib import messages
 
 @admin.register(NutritionGoal)
 class NutritionGoalAdmin(admin.ModelAdmin):
