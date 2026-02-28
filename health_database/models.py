@@ -102,7 +102,7 @@ class Nutrition(models.Model):
         verbose_name_plural = "Записи харчування"
 
 class SleepRecord(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='health_sleep_records')
     start_time = models.DateTimeField(verbose_name="Ліг спати")
     end_time = models.DateTimeField(verbose_name="Прокинувся")
     created_at = models.DateTimeField(auto_now_add=True)

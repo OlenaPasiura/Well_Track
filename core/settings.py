@@ -38,6 +38,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'health_database',
+    'dietician',
+    'user',
+    'nutrition',
+    'sleep_tracker',
+    'stress_tracker',
 ]
 
 MIDDLEWARE = [

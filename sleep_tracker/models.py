@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class SleepRecord(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tracker_sleep_records')
     start_time = models.DateTimeField(verbose_name='Заснув о')
     end_time = models.DateTimeField(verbose_name='Прокинувся о')
     created_at = models.DateField(auto_now_add=True)
