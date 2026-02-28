@@ -4,7 +4,8 @@ from django.contrib.auth import get_user_model
 from nutrition.models import Nutrition
 from sleep_tracker.models import SleepRecord
 from stress_tracker.models import StressRecord
-
+from django.utils import timezone
+from django.db.models import Avg
 User = get_user_model()
 
 def view_patient_stats(request, patient_id):
@@ -49,17 +50,37 @@ def get_my_clients(request):
  #далі він вибирає когось конкретного клікає на нього та отримує весь звіт
 
 
-def view_patient_stats(request, patient_id):
-    from django.http import JsonResponse
-    from stress_tracker.models import StressRecord
-    stats = StressRecord.objects.filter(user_id=patient_id).order_by('created_at')
+def get_daily_summary(request, patient_id):
+    patient = get_object_or_404(User, id=patient_id)
+    today = timezone.now().date()
 
-    # дані для фронтенду
-    data = {
-        'labels': [record.created_at.strftime("%d.%m") for record in stats],
-        'stress_levels': [record.level for record in stats],
-        'critical_count': sum(1 for r in stats if r.check_danger_threshold()) # твій метод
-    }
+    nutrition = Nutrition.objects.filter(user=patient, date=today).first()
 
-    return JsonResponse(data)
-#дані про стрес левел конкретного користувача
+    stress_avg = StressRecord.objects.filter(
+        user=patient,
+        created_at__date=today
+    ).aggregate(Avg('level'))['level__avg']
+
+    sleep = SleepRecord.objects.filter(user=patient, start_time__date=today).first()
+
+    return JsonResponse({
+        "patient": patient.username,
+        "date": today.strftime('%d.%m.%Y'),
+        "daily_report": {
+            "nutrition": {
+                "calories": nutrition.calories if nutrition else 0,
+                "proteins": nutrition.proteins if nutrition else 0,
+                "fats": nutrition.fats if nutrition else 0,
+                "carbs": nutrition.carbs if nutrition else 0,
+                "meals": nutrition.meals_count if nutrition else 0
+            },
+            "stress": {
+                "average_level": round(stress_avg, 1) if stress_avg else 0,
+                "status": "Check needed" if stress_avg and stress_avg > 7 else "Normal"
+            },
+            "sleep": {
+                "duration_hours": sleep.duration if sleep else 0,
+                "quality_score": "Good" if sleep and sleep.duration >= 7 else "Low"
+            }
+        }
+    })

@@ -19,7 +19,7 @@ urlpatterns = [
     path('nutrition/', views.nutrition_page, name='nutrition_page'),
     path('chat/', views.chat_page, name='chat_page'),
     path('responses/', views.responses_page, name='responses_page'),
-
+    path('dietician/', include('dietician.urls')),
     # адмінка
     path('admin/', admin.site.urls),
 

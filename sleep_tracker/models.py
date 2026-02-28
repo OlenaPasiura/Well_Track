@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 
 
 class SleepRecord(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='tracker_sleep_records')
     start_time = models.DateTimeField(verbose_name='Заснув о')
     end_time = models.DateTimeField(verbose_name='Прокинувся о')
     created_at = models.DateField(auto_now_add=True)
