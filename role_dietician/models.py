@@ -34,6 +34,10 @@ class NutritionGoal(models.Model):
     def __str__(self):
         return f"Цілі харчування для {self.user.email}"
 
+    class Meta:
+        verbose_name = "Ціль харчування"
+        verbose_name_plural = "Цілі харчування"
+
 class DieticianFeedback(models.Model):
     """model to implement send_feedback"""
     dietician = models.ForeignKey(
@@ -53,6 +57,11 @@ class DieticianFeedback(models.Model):
         validators=[validate_feedback_text]
     )
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Фідбек дієтолога"
+        verbose_name_plural = "Фідбеки дієтологів"
+        ordering = ['-created_at']
 
     def __str__ (self):
         return f"Порада для {self.client.email} від {self.created_at.date()}"

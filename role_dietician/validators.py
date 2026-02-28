@@ -26,3 +26,12 @@ def validate_feedback_text(value):
             "Порада занадто коротка. Напишіть принаймні 10 символів, щоб вона була корисною."
         )
 
+    if len(clean_text) > 5000:
+        raise ValidationError(
+            f"Порада занадто довга ({len(clean_text)} симв.). Максимум — 5000 символів."
+        )
+    if clean_text.isdigit():
+        raise ValidationError(
+            "Порада не може складатися лише з цифр. Напишіть змістовний текст."
+        )
+
