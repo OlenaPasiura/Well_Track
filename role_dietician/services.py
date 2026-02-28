@@ -66,3 +66,28 @@ class DieticianService:
             client=client,
             message=message_text
         )
+
+    @staticmethod
+    def notify_all_at_risk_clients(dietician, custom_message=None):
+        """
+        Знаходить усіх клієнтів зі стресом > 80% (або середнім балом >= 4)
+        і автоматично створює для них фідбек.
+        """
+        at_risk_data = DieticianService.filter_at_risk_users(threshold_percent=80)
+
+        feedbacks_created = []
+
+        for entry in at_risk_data:
+            client = entry['user']
+            stress_val = entry['stress_percent']
+
+            text = custom_message or f"Система зафіксувала високий рівень стресу ({stress_val}%). Зверніть увагу на свій стан!"
+
+            fb = DieticianService.send_feedback(
+                dietician=dietician,
+                client=client,
+                message_text=text
+            )
+            feedbacks_created.append(fb)
+
+        return feedbacks_created

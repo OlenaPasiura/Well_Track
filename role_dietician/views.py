@@ -48,3 +48,27 @@ def send_feedback_view(request, client_id):
 
     return render(request, 'role_dietician/set_goals.html', {'client': client})
 
+
+@login_required
+def at_risk_list_view(request):
+    """Відображає список користувачів у зоні ризику (>80%)"""
+    if request.user.profile_type != Role.DIETITIAN:
+        raise PermissionDenied()
+    at_risk_users = DieticianService.filter_at_risk_users(threshold_percent=80)
+
+    return render(request, 'role_dietician/at_risk_list.html', {
+        'at_risk_users': at_risk_users
+    })
+
+
+@login_required
+def notify_all_at_risk_view(request):
+    """Метод для масової розсилки фідбеку всім зі стресом > 80%"""
+    if request.user.profile_type != Role.DIETITIAN:
+        raise PermissionDenied()
+
+    if request.method == "POST":
+        DieticianService.notify_all_at_risk_clients(dietician=request.user)
+        return redirect('at_risk_list')
+
+    return redirect('at_risk_list')
