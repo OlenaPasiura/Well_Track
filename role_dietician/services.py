@@ -3,7 +3,7 @@ from django.utils import timezone
 from .models import NutritionGoal, DieticianFeedback
 from .validators import validate_nutrition_limit, validate_feedback_text
 from stress_tracker.models import StressRecord
-from healthstats.models import HealthStats
+from healthstats.models import UserHealthStats
 from user.role import Role
 
 User = get_user_model()
@@ -24,7 +24,7 @@ class DieticianService:
 
         for client in clients:
             avg_score = StressRecord.calculate_average_stress(client)
-            stats = HealthStats.objects.filter(user=client, date=today).first()
+            stats = UserHealthStats.objects.filter(user=client, date=today).first()
             calculated_stress_percent = stats.calculate_daily_stress() if stats else 0
 
             if avg_score >= 4 or calculated_stress_percent >= threshold_percent:

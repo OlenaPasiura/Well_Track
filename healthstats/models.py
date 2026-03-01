@@ -6,7 +6,7 @@ from nutrition.models import Nutrition
 
 User = get_user_model()
 
-class HealthStats(models.Model):
+class UserHealthStats(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,

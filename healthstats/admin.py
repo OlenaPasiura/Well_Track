@@ -1,7 +1,7 @@
 from django.contrib import admin
-from .models import HealthStats
+from .models import UserHealthStats
 
-@admin.register(HealthStats)
+@admin.register(UserHealthStats)
 class HealthStatsAdmin(admin.ModelAdmin):
     list_display = ('user', 'date', 'mood_score', 'sleep_hours', 'get_stress')
 

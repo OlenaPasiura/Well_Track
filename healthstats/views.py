@@ -1,5 +1,5 @@
 from rest_framework import viewsets, permissions
-from .models import HealthStats
+from .models import UserHealthStats
 from .serializers import HealthStatsSerializer
 
 class HealthStatsViewSet(viewsets.ModelViewSet):
@@ -7,7 +7,7 @@ class HealthStatsViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return HealthStats.objects.filter(user=self.request.user)
+        return UserHealthStats.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
