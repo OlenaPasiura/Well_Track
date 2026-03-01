@@ -8,10 +8,10 @@ class Nutrition(models.Model):
     date = models.DateField()
     meals_count = models.PositiveIntegerField()
 
-    proteins = models.FloatField
-    fats = models.FloatField
-    carbs = models.FloatField
-    fiber = models.FloatField
+    proteins = models.FloatField()
+    fats = models.FloatField()
+    carbs = models.FloatField()
+    fiber = models.FloatField()
 
     calories = models.FloatField(blank=True, null=True)
 
