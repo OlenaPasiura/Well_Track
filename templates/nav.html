@@ -1,0 +1,60 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <div class="container-fluid">
+        <a class="navbar-brand d-flex align-items-center gap-2" href="/dashboard">
+            <div class="logo-icon-nav"><span>W</span></div>
+            <span class="brand-title-nav">WEll-track</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item">
+                    <a class="nav-link {% if active=='dashboard' %}active{% endif %}" href="/dashboard">
+                        <i class="bi bi-house-door"></i> Головна
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if active=='stress' %}active{% endif %}" href="/stress">
+                        <i class="bi bi-emoji-smile"></i> Стрес
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if active=='sleep' %}active{% endif %}" href="/sleep">
+                        <i class="bi bi-moon-stars"></i> Сон
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if active=='nutrition' %}active{% endif %}" href="/nutrition">
+                        <i class="bi bi-cup-straw"></i> Харчування
+                    </a>
+                </li>
+                {% if user.role == 'client' %}
+                <li class="nav-item">
+                    <a class="nav-link {% if active=='chat' %}active{% endif %}" href="/chat">
+                        <i class="bi bi-chat-dots"></i> Чат
+                        <span id="unreadBadge" class="badge bg-danger ms-1 d-none"></span>
+                    </a>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a class="nav-link {% if active=='responses' %}active{% endif %}" href="/responses">
+                        <i class="bi bi-chat-square-text"></i> Чати клієнтів
+                        <span id="unreadBadge" class="badge bg-danger ms-1 d-none"></span>
+                    </a>
+                </li>
+                {% endif %}
+                <li class="nav-item ms-2">
+                    <span class="nav-link text-muted">
+                        <i class="bi bi-person-circle"></i> {{ user.nickname }}
+                    </span>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/logout">
+                        <i class="bi bi-box-arrow-right"></i> Вийти
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

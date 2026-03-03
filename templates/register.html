@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% block title %} - Реєстрація{% endblock %}
+{% block body_class %}class="bg-gradient"{% endblock %}
+{% block body %}
+<div class="container min-vh-100 d-flex align-items-center justify-content-center py-4">
+    <div class="auth-container">
+        <a href="/select-type" class="back-button mb-4 d-inline-flex">
+            <i class="bi bi-arrow-left"></i><span class="ms-2">Назад до вибору типу</span>
+        </a>
+        <div class="text-center mb-4">
+            <div class="d-flex align-items-center justify-content-center gap-2 mb-3">
+                <div class="logo-icon-small"><span>W</span></div>
+                <h1 class="brand-title-small mb-0">WEll-track</h1>
+            </div>
+            <p class="auth-subtitle">Реєстрація як
+                <strong>{% if role == 'dietician' %}дієтолог{% else %}клієнт{% endif %}</strong>
+            </p>
+        </div>
+        <div class="auth-form">
+            <input type="hidden" id="roleField" value="{{ role }}">
+
+            <div class="mb-3">
+                <label class="form-label">Нік (ім'я в системі)</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                    <input type="text" class="form-control" id="nickname" placeholder="Ваш нік" required>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Стать</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-gender-ambiguous"></i></span>
+                    <select class="form-select" id="gender" required>
+                        <option value="">Оберіть стать</option>
+                        <option value="male">Чоловіча</option>
+                        <option value="female">Жіноча</option>
+                        <option value="other">Інша</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Електронна пошта</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                    <input type="email" class="form-control" id="email" placeholder="your.email@example.com" required>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Пароль</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                    <input type="password" class="form-control" id="password" placeholder="Мінімум 6 символів" required>
+                    <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                        <i class="bi bi-eye" id="eyeIcon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Підтвердити пароль</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                    <input type="password" class="form-control" id="confirmPassword" placeholder="Повторіть пароль" required>
+                    <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">
+                        <i class="bi bi-eye" id="eyeIconConfirm"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="errorMessage" class="alert alert-danger d-none"></div>
+
+            <button type="button" class="btn btn-primary w-100 btn-gradient mb-3" id="registerBtn">
+                Зареєструватися
+            </button>
+
+            <div class="text-center">
+                <p class="mb-0">Вже маєте акаунт? <a href="/login" class="auth-link">Увійти</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('togglePassword').addEventListener('click', function() {
+    const p = document.getElementById('password');
+    const icon = document.getElementById('eyeIcon');
+    p.type = p.type === 'password' ? 'text' : 'password';
+    icon.classList.toggle('bi-eye'); icon.classList.toggle('bi-eye-slash');
+});
+document.getElementById('toggleConfirmPassword').addEventListener('click', function() {
+    const p = document.getElementById('confirmPassword');
+    const icon = document.getElementById('eyeIconConfirm');
+    p.type = p.type === 'password' ? 'text' : 'password';
+    icon.classList.toggle('bi-eye'); icon.classList.toggle('bi-eye-slash');
+});
+
+document.getElementById('registerBtn').addEventListener('click', doRegister);
+
+async function doRegister() {
+    const nickname = document.getElementById('nickname').value.trim();
+    const gender = document.getElementById('gender').value;
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const role = document.getElementById('roleField').value;
+    const err = document.getElementById('errorMessage');
+    err.classList.add('d-none');
+
+    if (!nickname || !gender || !email || !password || !confirmPassword) {
+        err.textContent = 'Заповніть всі поля'; err.classList.remove('d-none'); return;
+    }
+    if (password !== confirmPassword) {
+        err.textContent = 'Паролі не співпадають'; err.classList.remove('d-none'); return;
+    }
+    if (password.length < 6) {
+        err.textContent = 'Пароль повинен містити мінімум 6 символів'; err.classList.remove('d-none'); return;
+    }
+
+    const res = await fetch('/register', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({nickname, gender, email, password, role})
+    });
+    const data = await res.json();
+    if (data.ok) {
+        window.location.href = '/dashboard';
+    } else {
+        err.textContent = data.error || 'Помилка реєстрації';
+        err.classList.remove('d-none');
+    }
+}
+</script>
+{% endblock %}

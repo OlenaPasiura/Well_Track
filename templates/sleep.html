@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% block title %} - Сон{% endblock %}
+{% block body_class %}class="dashboard-body"{% endblock %}
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+{% block body %}
+{% set active = 'sleep' %}
+{% include 'nav.html' %}
+
+<div class="container py-4">
+    <h1 class="page-title mb-4">Відстеження сну</h1>
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="chart-card">
+                <h5 class="chart-title">Скільки годин ви спали?</h5>
+                <div class="sleep-display text-center mb-3">
+                    <div class="sleep-value" id="sleepValue">7</div>
+                    <div class="sleep-label">годин</div>
+                </div>
+                <div class="mb-4">
+                    <input type="range" class="form-range" id="sleepSlider" min="0" max="12" step="0.5" value="7">
+                </div>
+                <h6 class="mb-3">Якість сну</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-4">
+                        <button class="quality-btn w-100" data-quality="poor">
+                            <div style="font-size:2rem">😴</div><div>Погано</div>
+                        </button>
+                    </div>
+                    <div class="col-4">
+                        <button class="quality-btn w-100 selected" data-quality="average">
+                            <div style="font-size:2rem">😊</div><div>Нормально</div>
+                        </button>
+                    </div>
+                    <div class="col-4">
+                        <button class="quality-btn w-100" data-quality="good">
+                            <div style="font-size:2rem">😄</div><div>Відмінно</div>
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Нотатка (необов'язково)</label>
+                    <textarea class="form-control" id="note" rows="2" placeholder="Чи були проблеми зі сном?"></textarea>
+                </div>
+                <div id="saveMsg" class="alert d-none mb-2"></div>
+                <button id="saveBtn" class="btn btn-primary btn-gradient w-100">Зберегти</button>
+            </div>
+
+            <div class="chart-card mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="chart-title mb-0">Статистика сну</h5>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-outline-primary active" id="weekBtn" onclick="switchPeriod('week')">Тиждень</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="monthBtn" onclick="switchPeriod('month')">Місяць</button>
+                    </div>
+                </div>
+                <canvas id="sleepChart"></canvas>
+            </div>
+
+            <div class="chart-card mt-4">
+                <h5 class="chart-title">Середні показники</h5>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="stats-card">
+                            <div class="stats-icon sleep-color"><i class="bi bi-moon-stars"></i></div>
+                            <div><h6 class="stats-label">Середня тривалість</h6><h3 class="stats-value" id="avgHours">-</h3></div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stats-card">
+                            <div class="stats-icon nutrition-color"><i class="bi bi-star"></i></div>
+                            <div><h6 class="stats-label">Якість</h6><h3 class="stats-value" id="avgQuality">-</h3></div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stats-card">
+                            <div class="stats-icon stress-color"><i class="bi bi-clipboard-data"></i></div>
+                            <div><h6 class="stats-label">Записів</h6><h3 class="stats-value" id="totalRecords">-</h3></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <button class="ai-assistant-btn" id="aiAssistantBtn" title="AI Помічник"><i class="bi bi-robot"></i></button>
+</div>
+{% include 'ai_modal.html' %}
+{% endblock %}
+{% block scripts %}
+<script>
+let selectedQuality = 'average';
+let sleepChart = null;
+let currentPeriod = 'week';
+
+document.getElementById('sleepSlider').addEventListener('input', function() {
+    document.getElementById('sleepValue').textContent = this.value;
+});
+
+document.querySelectorAll('.quality-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.quality-btn').forEach(b => b.classList.remove('selected'));
+        this.classList.add('selected');
+        selectedQuality = this.dataset.quality;
+    });
+});
+
+document.getElementById('saveBtn').addEventListener('click', async function() {
+    const hours = parseFloat(document.getElementById('sleepSlider').value);
+    const note = document.getElementById('note').value;
+    const today = new Date().toISOString().split('T')[0];
+    const msg = document.getElementById('saveMsg');
+
+    const res = await fetch('/api/sleep', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({hours, quality: selectedQuality, note, date: today})
+    });
+    const data = await res.json();
+    if (data.ok) {
+        msg.textContent = 'Збережено!';
+        msg.className = 'alert alert-success';
+        setTimeout(() => msg.className = 'alert d-none', 2000);
+        loadChart(currentPeriod);
+        loadStats();
+    }
+});
+
+async function switchPeriod(period) {
+    currentPeriod = period;
+    document.getElementById('weekBtn').classList.toggle('active', period === 'week');
+    document.getElementById('monthBtn').classList.toggle('active', period === 'month');
+    loadChart(period);
+}
+
+async function loadChart(period) {
+    const res = await fetch('/api/sleep?period=' + period);
+    const rows = await res.json();
+
+    const days = period === 'week' ? 7 : 30;
+    const labels = [], data = [];
+    for (let i = days - 1; i >= 0; i--) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        const ds = d.toISOString().split('T')[0];
+        labels.push(d.toLocaleDateString('uk-UA', {day:'2-digit',month:'2-digit'}));
+        const row = rows.find(r => r.date === ds);
+        data.push(row ? row.hours : null);
+    }
+
+    if (sleepChart) sleepChart.destroy();
+    sleepChart = new Chart(document.getElementById('sleepChart'), {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{label:'Години сну', data, backgroundColor:'rgba(139,92,246,0.8)', borderColor:'rgb(139,92,246)', borderWidth:1}]
+        },
+        options: {
+            responsive: true,
+            scales: { y: { beginAtZero:true, max:12, ticks:{stepSize:2} } },
+            plugins: { legend: { display:false } }
+        }
+    });
+}
+
+async function loadStats() {
+    const res = await fetch('/api/sleep/stats');
+    const data = await res.json();
+    document.getElementById('avgHours').textContent = data.avg_hours ? data.avg_hours + ' год' : '-';
+    document.getElementById('avgQuality').textContent = data.avg_quality || '-';
+    document.getElementById('totalRecords').textContent = data.total || '0';
+}
+
+document.getElementById('aiAssistantBtn').addEventListener('click', function() {
+    new bootstrap.Modal(document.getElementById('aiModal')).show();
+});
+
+loadChart('week');
+loadStats();
+</script>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %} - Тип профілю{% endblock %}
+{% block body_class %}class="bg-gradient"{% endblock %}
+{% block body %}
+<div class="container min-vh-100 d-flex align-items-center justify-content-center py-4">
+    <div class="type-selection-container">
+        <a href="/" class="back-button mb-4 d-inline-flex">
+            <i class="bi bi-arrow-left"></i><span class="ms-2">Назад</span>
+        </a>
+        <div class="text-center mb-5">
+            <div class="d-flex align-items-center justify-content-center gap-2 mb-3">
+                <div class="logo-icon-small"><span>W</span></div>
+                <h1 class="brand-title-small mb-0">WEll-track</h1>
+            </div>
+            <h2 class="selection-title">Оберіть тип профілю</h2>
+            <p class="text-muted">Як ви будете використовувати WEll-track?</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6">
+                <a href="/register?role=client" class="type-card user-card h-100">
+                    <div class="card-overlay"></div>
+                    <div class="card-content text-center">
+                        <div class="type-icon user-icon mx-auto mb-3">
+                            <i class="bi bi-person"></i>
+                        </div>
+                        <h3 class="type-title mb-2">Клієнт</h3>
+                        <p class="type-description">Відстежуйте своє здоров'я, сон, харчування та стрес. Спілкуйтесь з дієтологом.</p>
+                        <ul class="text-start mt-3 ps-3 text-muted small">
+                            <li>Трекер сну</li>
+                            <li>Трекер стресу</li>
+                            <li>Щоденник харчування</li>
+                            <li>Чат з дієтологом</li>
+                        </ul>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6">
+                <a href="/register?role=dietician" class="type-card dietitian-card h-100">
+                    <div class="card-overlay"></div>
+                    <div class="card-content text-center">
+                        <div class="type-icon dietitian-icon mx-auto mb-3">
+                            <i class="bi bi-heart-pulse"></i>
+                        </div>
+                        <h3 class="type-title mb-2">Дієтолог</h3>
+                        <p class="type-description">Консультуйте клієнтів, відповідайте на їхні питання та стежте за їхнім прогресом.</p>
+                        <ul class="text-start mt-3 ps-3 text-muted small">
+                            <li>Чати з клієнтами</li>
+                            <li>Перегляд статистики клієнтів</li>
+                            <li>Надання рекомендацій</li>
+                            <li>Управління клієнтами</li>
+                        </ul>
+                    </div>
+                </a>
+            </div>
+        </div>
+        <div class="text-center mt-4">
+            <p class="text-muted">Вже маєте акаунт? <a href="/login" class="auth-link">Увійти</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

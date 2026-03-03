@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block title %} - Чат{% endblock %}
+{% block body_class %}class="dashboard-body"{% endblock %}
+{% block body %}
+{% set active = 'chat' %}
+{% include 'nav.html' %}
+
+<div class="container py-4">
+    {% if other %}
+    <h1 class="page-title mb-1">
+        Чат з
+        {% if user.role == 'client' %}дієтологом{% else %}клієнтом{% endif %}
+    </h1>
+    <p class="text-muted mb-4"><i class="bi bi-person-circle"></i> {{ other.nickname }}</p>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="chat-messages" id="chatMessages" style="height:500px;overflow-y:auto;background:white;border-radius:1rem;padding:1.5rem;margin-bottom:1rem;border:1px solid #e5e7eb;">
+                <div class="text-center text-muted py-3" id="loadingMsg">Завантаження повідомлень...</div>
+            </div>
+            <div class="input-group">
+                <input type="text" class="form-control" id="messageInput" placeholder="Введіть повідомлення...">
+                <button class="btn btn-primary btn-gradient" id="sendBtn">
+                    <i class="bi bi-send"></i> Відправити
+                </button>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-lg-6 mx-auto">
+            <div class="chart-card text-center py-5">
+                <div style="font-size:3rem">💬</div>
+                <h4 class="mt-3">Немає доступних чатів</h4>
+                <p class="text-muted">
+                    {% if user.role == 'client' %}
+                    Дієтолог ще не призначений. Зачекайте або зверніться до адміністратора.
+                    {% else %}
+                    Клієнтів ще немає. Вони з'являться після реєстрації.
+                    {% endif %}
+                </p>
+                <a href="/dashboard" class="btn btn-primary btn-gradient mt-2">На головну</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <button class="ai-assistant-btn" id="aiAssistantBtn" title="AI Помічник"><i class="bi bi-robot"></i></button>
+</div>
+{% include 'ai_modal.html' %}
+{% endblock %}
+{% block scripts %}
+{% if other %}
+<script>
+const OTHER_ID = {{ other.id }};
+const MY_ID = {{ user.id }};
+let polling = null;
+
+async function loadMessages() {
+    const res = await fetch('/api/chat/' + OTHER_ID + '/messages');
+    const msgs = await res.json();
+    const el = document.getElementById('chatMessages');
+    const loadingMsg = document.getElementById('loadingMsg');
+    if (loadingMsg) loadingMsg.remove();
+
+    el.innerHTML = '';
+    msgs.forEach(msg => addMessageToUI(msg));
+    el.scrollTop = el.scrollHeight;
+}
+
+function addMessageToUI(msg) {
+    const el = document.getElementById('chatMessages');
+    const isMine = msg.sender_id === MY_ID;
+    const div = document.createElement('div');
+    div.className = 'message ' + (isMine ? 'sent' : 'received');
+
+    const dt = new Date(msg.created_at);
+    const timeStr = dt.toLocaleTimeString('uk-UA', {hour:'2-digit',minute:'2-digit'});
+    const dateStr = dt.toLocaleDateString('uk-UA', {day:'2-digit',month:'2-digit'});
+
+    div.innerHTML = `
+        <div class="message-bubble">${escapeHtml(msg.text)}</div>
+        <div class="message-time">${dateStr}, ${timeStr}</div>
+    `;
+    el.appendChild(div);
+}
+
+function escapeHtml(t) {
+    const d = document.createElement('div');
+    d.appendChild(document.createTextNode(t));
+    return d.innerHTML;
+}
+
+async function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+
+    const res = await fetch('/api/chat/' + OTHER_ID + '/messages', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({text})
+    });
+    const msg = await res.json();
+    if (msg.id) {
+        addMessageToUI(msg);
+        document.getElementById('chatMessages').scrollTop = 99999;
+    }
+}
+
+document.getElementById('sendBtn').addEventListener('click', sendMessage);
+document.getElementById('messageInput').addEventListener('keypress', e => {
+    if (e.key === 'Enter') sendMessage();
+});
+
+loadMessages();
+// Poll every 3 seconds
+polling = setInterval(loadMessages, 3000);
+
+document.getElementById('aiAssistantBtn').addEventListener('click', function() {
+    new bootstrap.Modal(document.getElementById('aiModal')).show();
+});
+</script>
+{% endif %}
+{% endblock %}

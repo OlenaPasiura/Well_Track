@@ -1,0 +1,273 @@
+{% extends 'base.html' %}
+{% block title %} - Харчування{% endblock %}
+{% block body_class %}class="dashboard-body"{% endblock %}
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+{% block body %}
+{% set active = 'nutrition' %}
+{% include 'nav.html' %}
+
+<div class="container-fluid py-4">
+    <h1 class="page-title mb-4">Харчування та БЖУ</h1>
+
+    <!-- Plan -->
+    <div class="chart-card mb-4">
+        <h5 class="chart-title">Оберіть ваш план</h5>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="plan-card text-center" data-plan="gain" onclick="selectPlan('gain')">
+                    <div class="plan-icon mx-auto">💪</div>
+                    <h6 class="mb-1">Масонабір</h6>
+                    <small class="text-muted">+300 ккал від норми</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="plan-card text-center selected" data-plan="maintain" onclick="selectPlan('maintain')">
+                    <div class="plan-icon mx-auto">⚖️</div>
+                    <h6 class="mb-1">Підтримка ваги</h6>
+                    <small class="text-muted">Норма калорій</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="plan-card text-center" data-plan="loss" onclick="selectPlan('loss')">
+                    <div class="plan-icon mx-auto">🔥</div>
+                    <h6 class="mb-1">Схуднення</h6>
+                    <small class="text-muted">-300 ккал від норми</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Today's Progress -->
+        <div class="col-lg-4">
+            <div class="chart-card">
+                <h5 class="chart-title">Прогрес сьогодні</h5>
+                <div class="text-center mb-4">
+                    <h2 class="mb-0" id="todayCalories">0</h2>
+                    <small class="text-muted">з <span id="targetCalories">2000</span> ккал</small>
+                </div>
+                <div class="macro-progress mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span><i class="bi bi-circle-fill" style="color:#ef4444"></i> Білки</span>
+                        <span><strong id="proteinAmount">0</strong> / <span id="proteinTarget">150</span>г</span>
+                    </div>
+                    <div class="progress"><div class="progress-bar" id="proteinBar" style="width:0%;background-color:#ef4444"></div></div>
+                </div>
+                <div class="macro-progress mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span><i class="bi bi-circle-fill" style="color:#f59e0b"></i> Жири</span>
+                        <span><strong id="fatAmount">0</strong> / <span id="fatTarget">65</span>г</span>
+                    </div>
+                    <div class="progress"><div class="progress-bar" id="fatBar" style="width:0%;background-color:#f59e0b"></div></div>
+                </div>
+                <div class="macro-progress mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span><i class="bi bi-circle-fill" style="color:#3b82f6"></i> Вуглеводи</span>
+                        <span><strong id="carbsAmount">0</strong> / <span id="carbsTarget">250</span>г</span>
+                    </div>
+                    <div class="progress"><div class="progress-bar" id="carbsBar" style="width:0%;background-color:#3b82f6"></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Meal -->
+        <div class="col-lg-8">
+            <div class="chart-card">
+                <h5 class="chart-title">Додати прийом їжі</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Назва страви/продукту</label>
+                        <input type="text" class="form-control" id="foodName" placeholder="Куряча грудка">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Прийом їжі</label>
+                        <select class="form-select" id="mealType">
+                            <option value="breakfast">Сніданок</option>
+                            <option value="lunch">Обід</option>
+                            <option value="dinner">Вечеря</option>
+                            <option value="snack">Перекус</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Калорії (ккал)</label>
+                        <input type="number" class="form-control" id="calories" placeholder="250" min="0">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Білки (г)</label>
+                        <input type="number" class="form-control" id="protein" placeholder="30" min="0" step="0.1">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Жири (г)</label>
+                        <input type="number" class="form-control" id="fat" placeholder="10" min="0" step="0.1">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Вуглеводи (г)</label>
+                        <input type="number" class="form-control" id="carbs" placeholder="0" min="0" step="0.1">
+                    </div>
+                </div>
+                <div id="addMsg" class="alert d-none mt-2"></div>
+                <button id="addBtn" class="btn btn-primary btn-gradient mt-3">
+                    <i class="bi bi-plus-lg"></i> Додати запис
+                </button>
+            </div>
+
+            <!-- Today's meals -->
+            <div class="chart-card mt-4">
+                <h5 class="chart-title">Записи сьогодні</h5>
+                <div id="mealsList"><p class="text-muted">Завантаження...</p></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weekly chart -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="chart-card">
+                <h5 class="chart-title">Калорії за тиждень</h5>
+                <canvas id="nutritionChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <button class="ai-assistant-btn" id="aiAssistantBtn" title="AI Помічник"><i class="bi bi-robot"></i></button>
+</div>
+{% include 'ai_modal.html' %}
+{% endblock %}
+{% block scripts %}
+<script>
+const plans = {
+    gain: { cal: 2300, protein: 170, fat: 75, carbs: 280 },
+    maintain: { cal: 2000, protein: 150, fat: 65, carbs: 250 },
+    loss: { cal: 1700, protein: 140, fat: 55, carbs: 200 }
+};
+let currentPlan = 'maintain';
+
+function selectPlan(plan) {
+    currentPlan = plan;
+    document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+    document.querySelector('[data-plan="'+plan+'"]').classList.add('selected');
+    const p = plans[plan];
+    document.getElementById('targetCalories').textContent = p.cal;
+    document.getElementById('proteinTarget').textContent = p.protein;
+    document.getElementById('fatTarget').textContent = p.fat;
+    document.getElementById('carbsTarget').textContent = p.carbs;
+    updateBars();
+}
+
+async function loadToday() {
+    const today = new Date().toISOString().split('T')[0];
+    const res = await fetch('/api/nutrition?date=' + today);
+    const rows = await res.json();
+
+    const totals = { cal: 0, protein: 0, fat: 0, carbs: 0 };
+    rows.forEach(r => {
+        totals.cal += r.calories;
+        totals.protein += r.protein;
+        totals.fat += r.fat;
+        totals.carbs += r.carbs;
+    });
+
+    document.getElementById('todayCalories').textContent = Math.round(totals.cal);
+    document.getElementById('proteinAmount').textContent = Math.round(totals.protein);
+    document.getElementById('fatAmount').textContent = Math.round(totals.fat);
+    document.getElementById('carbsAmount').textContent = Math.round(totals.carbs);
+    updateBars(totals);
+
+    const mealNames = { breakfast: 'Сніданок', lunch: 'Обід', dinner: 'Вечеря', snack: 'Перекус' };
+    const el = document.getElementById('mealsList');
+    if (!rows.length) { el.innerHTML = '<p class="text-muted">Записів ще немає</p>'; return; }
+    el.innerHTML = rows.map(r => `
+        <div class="d-flex justify-content-between align-items-center p-2 mb-2 bg-light rounded">
+            <div>
+                <strong>${r.food_name}</strong>
+                <span class="badge bg-secondary ms-2">${mealNames[r.meal_type] || r.meal_type}</span>
+                <div class="text-muted small">${r.calories} ккал · Б:${r.protein}г · Ж:${r.fat}г · В:${r.carbs}г</div>
+            </div>
+            <button class="btn btn-sm btn-outline-danger" onclick="deleteRecord(${r.id})">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+    `).join('');
+    return totals;
+}
+
+function updateBars(totals) {
+    if (!totals) return;
+    const p = plans[currentPlan];
+    function pct(v, max) { return Math.min(100, Math.round(v/max*100)) + '%'; }
+    document.getElementById('proteinBar').style.width = pct(totals.protein, p.protein);
+    document.getElementById('fatBar').style.width = pct(totals.fat, p.fat);
+    document.getElementById('carbsBar').style.width = pct(totals.carbs, p.carbs);
+}
+
+document.getElementById('addBtn').addEventListener('click', async function() {
+    const foodName = document.getElementById('foodName').value.trim();
+    const mealType = document.getElementById('mealType').value;
+    const calories = parseInt(document.getElementById('calories').value) || 0;
+    const protein = parseFloat(document.getElementById('protein').value) || 0;
+    const fat = parseFloat(document.getElementById('fat').value) || 0;
+    const carbs = parseFloat(document.getElementById('carbs').value) || 0;
+    const msg = document.getElementById('addMsg');
+
+    if (!foodName) { msg.textContent = 'Введіть назву страви'; msg.className = 'alert alert-warning'; return; }
+
+    const today = new Date().toISOString().split('T')[0];
+    const res = await fetch('/api/nutrition', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({food_name: foodName, meal_type: mealType, calories, protein, fat, carbs, date: today})
+    });
+    const data = await res.json();
+    if (data.ok) {
+        msg.textContent = 'Додано!';
+        msg.className = 'alert alert-success';
+        setTimeout(() => msg.className = 'alert d-none', 2000);
+        ['foodName','calories','protein','fat','carbs'].forEach(id => document.getElementById(id).value = '');
+        loadToday();
+        loadWeekChart();
+    }
+});
+
+async function deleteRecord(id) {
+    await fetch('/api/nutrition/' + id, { method: 'DELETE' });
+    loadToday();
+    loadWeekChart();
+}
+
+let nutChart = null;
+async function loadWeekChart() {
+    const res = await fetch('/api/nutrition/week');
+    const rows = await res.json();
+    const labels = [], data = [];
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        const ds = d.toISOString().split('T')[0];
+        labels.push(d.toLocaleDateString('uk-UA', {day:'2-digit',month:'2-digit'}));
+        const row = rows.find(r => r.date === ds);
+        data.push(row ? row.cal : 0);
+    }
+    if (nutChart) nutChart.destroy();
+    nutChart = new Chart(document.getElementById('nutritionChart'), {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{label:'Калорії', data, backgroundColor:'rgba(16,185,129,0.8)', borderColor:'rgb(16,185,129)', borderWidth:1}]
+        },
+        options: {
+            responsive: true,
+            scales: { y: { beginAtZero: true } },
+            plugins: { legend: { display: false } }
+        }
+    });
+}
+
+document.getElementById('aiAssistantBtn').addEventListener('click', function() {
+    new bootstrap.Modal(document.getElementById('aiModal')).show();
+});
+
+loadToday();
+loadWeekChart();
+</script>
+{% endblock %}

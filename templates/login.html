@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block title %} - Вхід{% endblock %}
+{% block body_class %}class="bg-gradient"{% endblock %}
+{% block body %}
+<div class="container min-vh-100 d-flex align-items-center justify-content-center py-4">
+    <div class="auth-container">
+        <a href="/" class="back-button mb-4 d-inline-flex">
+            <i class="bi bi-arrow-left"></i><span class="ms-2">Назад</span>
+        </a>
+        <div class="text-center mb-4">
+            <div class="d-flex align-items-center justify-content-center gap-2 mb-3">
+                <div class="logo-icon-small"><span>W</span></div>
+                <h1 class="brand-title-small mb-0">WEll-track</h1>
+            </div>
+            <p class="auth-subtitle">Вхід до вашого акаунту</p>
+        </div>
+        <div class="auth-form">
+            <div class="mb-3">
+                <label class="form-label">Електронна пошта</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                    <input type="email" class="form-control" id="email" placeholder="your.email@example.com" required>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Пароль</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                    <input type="password" class="form-control" id="password" placeholder="Ваш пароль" required>
+                    <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                        <i class="bi bi-eye" id="eyeIcon"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="errorMessage" class="alert alert-danger d-none" role="alert"></div>
+            <button type="button" class="btn btn-primary w-100 btn-gradient mb-3" id="loginBtn">
+                Увійти
+            </button>
+            <div class="text-center">
+                <p class="mb-0">Немає акаунту? <a href="/select-type" class="auth-link">Зареєструватись</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('togglePassword').addEventListener('click', function() {
+    const p = document.getElementById('password');
+    const icon = document.getElementById('eyeIcon');
+    p.type = p.type === 'password' ? 'text' : 'password';
+    icon.classList.toggle('bi-eye');
+    icon.classList.toggle('bi-eye-slash');
+});
+
+document.getElementById('loginBtn').addEventListener('click', doLogin);
+document.getElementById('password').addEventListener('keypress', e => { if(e.key==='Enter') doLogin(); });
+
+async function doLogin() {
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const err = document.getElementById('errorMessage');
+    err.classList.add('d-none');
+
+    if (!email || !password) {
+        err.textContent = 'Заповніть всі поля';
+        err.classList.remove('d-none');
+        return;
+    }
+
+    const res = await fetch('/login', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({email, password})
+    });
+    const data = await res.json();
+    if (data.ok) {
+        window.location.href = '/dashboard';
+    } else {
+        err.textContent = data.error || 'Помилка входу';
+        err.classList.remove('d-none');
+    }
+}
+</script>
+{% endblock %}

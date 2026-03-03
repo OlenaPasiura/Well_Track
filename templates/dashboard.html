@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% block title %} - Dashboard{% endblock %}
+{% block body_class %}class="dashboard-body"{% endblock %}
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+{% block body %}
+{% set active = 'dashboard' %}
+{% include 'nav.html' %}
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="page-title mb-1">Панель управління</h1>
+            <p class="text-muted mb-4">Вітаємо, <strong>{{ user.nickname }}</strong>!
+                <span class="badge {% if user.role=='dietician' %}bg-primary{% else %}bg-success{% endif %} ms-1">
+                    {% if user.role=='dietician' %}Дієтолог{% else %}Клієнт{% endif %}
+                </span>
+            </p>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="stats-card">
+                <div class="stats-icon stress-color"><i class="bi bi-emoji-smile"></i></div>
+                <div>
+                    <h6 class="stats-label">Рівень стресу сьогодні</h6>
+                    <h3 class="stats-value" id="stressLevel">-</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card">
+                <div class="stats-icon sleep-color"><i class="bi bi-moon-stars"></i></div>
+                <div>
+                    <h6 class="stats-label">Години сну сьогодні</h6>
+                    <h3 class="stats-value" id="sleepHours">-</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card">
+                <div class="stats-icon nutrition-color"><i class="bi bi-cup-straw"></i></div>
+                <div>
+                    <h6 class="stats-label">Калорії сьогодні</h6>
+                    <h3 class="stats-value" id="calories">-</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="chart-card">
+                <h5 class="chart-title">Рівень стресу (7 днів)</h5>
+                <canvas id="stressChart"></canvas>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="chart-card">
+                <h5 class="chart-title">Години сну (7 днів)</h5>
+                <canvas id="sleepChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    {% if user.role == 'dietician' %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="chart-card">
+                <h5 class="chart-title">Мої клієнти</h5>
+                <a href="/responses" class="btn btn-primary btn-gradient">
+                    <i class="bi bi-chat-square-text"></i> Перейти до чатів клієнтів
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <button class="ai-assistant-btn" id="aiAssistantBtn" title="AI Помічник">
+        <i class="bi bi-robot"></i>
+    </button>
+</div>
+
+{% include 'ai_modal.html' %}
+{% endblock %}
+{% block scripts %}
+<script>
+const stressLabels = ['😊 Відмінно', '🙂 Добре', '😐 Нормально', '😟 Стресово', '😰 Дуже стресово'];
+const qualityLabels = {'poor':'Погано','average':'Нормально','good':'Відмінно'};
+
+async function loadDashboard() {
+    const res = await fetch('/api/dashboard');
+    const data = await res.json();
+
+    document.getElementById('stressLevel').textContent =
+        data.stress_today != null ? stressLabels[data.stress_today - 1] : 'Не вказано';
+    document.getElementById('sleepHours').textContent =
+        data.sleep_today != null ? data.sleep_today + ' год' : 'Не вказано';
+    document.getElementById('calories').textContent =
+        data.calories_today ? data.calories_today + ' ккал' : 'Не вказано';
+
+    // Build last 7 days labels
+    const labels = [];
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        labels.push(d.toLocaleDateString('uk-UA', {day:'2-digit',month:'2-digit'}));
+    }
+
+    // Stress chart
+    const stressMap = {};
+    (data.stress_chart || []).forEach(r => { stressMap[r.date] = r.level; });
+    const stressData = last7Dates().map(d => stressMap[d] || null);
+
+    new Chart(document.getElementById('stressChart'), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Рівень стресу',
+                data: stressData,
+                borderColor: 'rgb(239,68,68)',
+                backgroundColor: 'rgba(239,68,68,0.1)',
+                tension: 0.4, fill: true,
+                spanGaps: true
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: { y: { beginAtZero: true, max: 5, ticks: { stepSize: 1 } } },
+            plugins: { legend: { display: false } }
+        }
+    });
+
+    // Sleep chart
+    const sleepMap = {};
+    (data.sleep_chart || []).forEach(r => { sleepMap[r.date] = r.hours; });
+    const sleepData = last7Dates().map(d => sleepMap[d] || null);
+
+    new Chart(document.getElementById('sleepChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Години сну',
+                data: sleepData,
+                backgroundColor: 'rgba(139,92,246,0.8)',
+                borderColor: 'rgb(139,92,246)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: { y: { beginAtZero: true, max: 12, ticks: { stepSize: 2 } } },
+            plugins: { legend: { display: false } }
+        }
+    });
+}
+
+function last7Dates() {
+    const dates = [];
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        dates.push(d.toISOString().split('T')[0]);
+    }
+    return dates;
+}
+
+loadDashboard();
+loadUnread();
+
+async function loadUnread() {
+    const res = await fetch('/api/chat/unread');
+    const data = await res.json();
+    if (data.unread > 0) {
+        const badge = document.getElementById('unreadBadge');
+        if (badge) { badge.textContent = data.unread; badge.classList.remove('d-none'); }
+    }
+}
+
+// AI Modal
+document.getElementById('aiAssistantBtn').addEventListener('click', function() {
+    new bootstrap.Modal(document.getElementById('aiModal')).show();
+});
+</script>
+{% endblock %}

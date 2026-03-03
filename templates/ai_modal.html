@@ -1,0 +1,59 @@
+<div class="modal fade" id="aiModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-robot"></i> AI Помічник</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="aiChatBody">
+                <div class="ai-message"><strong>AI:</strong> Привіт! Я ваш AI помічник. Чим можу допомогти з питаннями здоров'я?</div>
+            </div>
+            <div class="modal-footer">
+                <input type="text" class="form-control" id="aiInput" placeholder="Введіть повідомлення...">
+                <button type="button" class="btn btn-primary" id="aiSendBtn"><i class="bi bi-send"></i></button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+(function() {
+    const responses = {
+        'стрес': 'Рекомендую практикувати техніки релаксації: глибоке дихання, медитацію або прогулянки на свіжому повітрі.',
+        'сон': 'Намагайтесь лягати і прокидатися в один і той же час. Оптимальна тривалість сну — 7-9 годин.',
+        'харчування': 'Збалансоване харчування включає достатню кількість білків, жирів і вуглеводів. Не забувайте про овочі та фрукти!',
+        'калорії': 'Рекомендована добова норма калорій залежить від вашого віку, статі та активності. Зазвичай це 1800-2400 ккал.',
+        'вода': 'Рекомендується пити 1.5-2 літри води на день. Зранку натщесерце — склянка теплої води.',
+        'привіт': 'Привіт! Чим можу допомогти?',
+        'дякую': 'Будь ласка! Звертайтеся, якщо виникнуть питання.'
+    };
+
+    function sendAI() {
+        const input = document.getElementById('aiInput');
+        const body = document.getElementById('aiChatBody');
+        const msg = input.value.trim();
+        if (!msg) return;
+
+        const uMsg = document.createElement('div');
+        uMsg.className = 'user-message';
+        uMsg.innerHTML = '<strong>Ви:</strong> ' + msg;
+        body.appendChild(uMsg);
+        input.value = '';
+
+        setTimeout(() => {
+            const lm = msg.toLowerCase();
+            let reply = 'Дякую за ваше повідомлення! Я тут, щоб допомогти вам з питаннями здоров\'я.';
+            for (const [k, v] of Object.entries(responses)) {
+                if (lm.includes(k)) { reply = v; break; }
+            }
+            const aMsg = document.createElement('div');
+            aMsg.className = 'ai-message';
+            aMsg.innerHTML = '<strong>AI:</strong> ' + reply;
+            body.appendChild(aMsg);
+            body.scrollTop = body.scrollHeight;
+        }, 600);
+    }
+
+    document.getElementById('aiSendBtn').addEventListener('click', sendAI);
+    document.getElementById('aiInput').addEventListener('keypress', e => { if(e.key==='Enter') sendAI(); });
+})();
+</script>
